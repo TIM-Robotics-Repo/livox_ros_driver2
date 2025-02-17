@@ -260,6 +260,9 @@ typedef struct {
 
 typedef struct {
   uint32_t handle;
+  // sensor id is used to distinguish different sensors
+  // it is used for topic namespace & frame_id 
+  std::string sensor_id;
   int8_t pcl_data_type;
   int8_t pattern_mode;
   int32_t blind_spot_set;
