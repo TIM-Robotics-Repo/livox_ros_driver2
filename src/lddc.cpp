@@ -263,10 +263,10 @@ void Lddc::InitPointcloud2MsgHeader(const uint8_t& index, PointCloud2& cloud) {
   std::string frame_id;
   if(use_multi_topic_){
     // Use namespace as frame_id
-    if(lds_->lidars_[index].livox_config.name_space.empty()){
+    if(lds_->lidars_[index].livox_config.sensor_id.empty()){
       frame_id = frame_id_;
     }else{
-      frame_id = lds_->lidars_[index].livox_config.name_space;
+      frame_id = lds_->lidars_[index].livox_config.sensor_id;
     }
   }else{
     frame_id = frame_id_;
@@ -367,10 +367,10 @@ void Lddc::InitCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg, uint8_t
   std::string frame_id;
   if(use_multi_topic_){
     // Use namespace as frame_id
-    if(lds_->lidars_[index].livox_config.name_space.empty()){
+    if(lds_->lidars_[index].livox_config.sensor_id.empty()){
       frame_id = frame_id_;
     }else{
-      frame_id = lds_->lidars_[index].livox_config.name_space;
+      frame_id = lds_->lidars_[index].livox_config.sensor_id;
     }
   }else{
     frame_id = frame_id_;
@@ -506,10 +506,10 @@ void Lddc::InitImuMsg(const uint8_t& index, const ImuData& imu_data, ImuMsg& imu
   std::string frame_id;
   if(use_multi_topic_){
     // Use namespace as frame_id
-    if(lds_->lidars_[index].livox_config.name_space.empty()){
+    if(lds_->lidars_[index].livox_config.sensor_id.empty()){
       frame_id = frame_id_;
     }else{
-      frame_id = lds_->lidars_[index].livox_config.name_space + "_imu";
+      frame_id = lds_->lidars_[index].livox_config.sensor_id + "_imu";
     }
   }else{
     frame_id = frame_id_;
@@ -682,7 +682,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentPublisher(uint8_t handle)
     if (!private_pub_[handle]) {
       
       std::string topic_name;
-      if(lds_->lidars_[handle].livox_config.name_space.empty()){
+      if(lds_->lidars_[handle].livox_config.sensor_id.empty()){
         char name_str[48];
         memset(name_str, 0, sizeof(name_str));
         
@@ -691,7 +691,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentPublisher(uint8_t handle)
             ReplacePeriodByUnderline(ip_string).c_str());
         topic_name = std::string(name_str);
       }else{
-        topic_name = "/" + lds_->lidars_[handle].livox_config.name_space + "/livox/lidar";
+        topic_name = "/" + lds_->lidars_[handle].livox_config.sensor_id + "/livox/lidar";
       }
       
       queue_size = queue_size * 2; // queue size is 64 for only one lidar
@@ -713,7 +713,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
   if (use_multi_topic_) {
     if (!private_imu_pub_[handle]) {
       std::string topic_name;
-      if(lds_->lidars_[handle].livox_config.name_space.empty()){
+      if(lds_->lidars_[handle].livox_config.sensor_id.empty()){
         char name_str[48];
         memset(name_str, 0, sizeof(name_str));
         std::string ip_string = IpNumToString(lds_->lidars_[handle].handle);
@@ -722,7 +722,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
         topic_name = std::string(name_str);
         
       }else{
-        topic_name = "/" + lds_->lidars_[handle].livox_config.name_space + "/livox/imu";
+        topic_name = "/" + lds_->lidars_[handle].livox_config.sensor_id + "/livox/imu";
       }
       queue_size = queue_size * 2; // queue size is 64 for only one lidar
             private_imu_pub_[handle] = CreatePublisher(kLivoxImuMsg, topic_name,
