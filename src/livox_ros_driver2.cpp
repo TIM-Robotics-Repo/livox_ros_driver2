@@ -116,11 +116,11 @@ int main(int argc, char **argv) {
 namespace livox_ros
 {
 DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
-: tim_common_utils::LifecycleNode("livox_driver_node", "", node_options)
+: rii_common_utils::LifecycleNode("livox_driver_node", "", node_options)
 {
   DRIVER_INFO(*this, "Livox Ros Driver2 Version: %s", LIVOX_ROS_DRIVER2_VERSION_STRING);
 }
-tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_configure(const rclcpp_lifecycle::State & /*state*/) {
+rii_common_utils::LifecycleNode::CallbackReturn DriverNode::on_configure(const rclcpp_lifecycle::State & /*state*/) {
   DeclareAndGetParameter<int>("xfer_format", kPointCloud2Msg, xfer_format_);
   DeclareAndGetParameter<int>("multi_topic", 0, multi_topic_);
   DeclareAndGetParameter<int>("data_src", kSourceRawLidar, data_src_);
@@ -141,10 +141,10 @@ tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_configure(const r
 
   future_ = exit_signal_.get_future();
 
-  return tim_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
+  return rii_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
-tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_activate(const rclcpp_lifecycle::State & /*state*/) {
+rii_common_utils::LifecycleNode::CallbackReturn DriverNode::on_activate(const rclcpp_lifecycle::State & /*state*/) {
    /** Lidar data distribute control and lidar data source set */
   lddc_ptr_ = std::make_unique<Lddc>(xfer_format_, multi_topic_, data_src_, output_type_, publish_freq_, frame_id_);
   lddc_ptr_->SetRosNode(this);
@@ -173,18 +173,18 @@ tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_activate(const rc
 
   pointclouddata_poll_thread_ = std::make_shared<std::thread>(&DriverNode::PointCloudDataPollThread, this);
   imudata_poll_thread_ = std::make_shared<std::thread>(&DriverNode::ImuDataPollThread, this);
-  return tim_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
+  return rii_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
-tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_deactivate(const rclcpp_lifecycle::State & /*state*/) {
+rii_common_utils::LifecycleNode::CallbackReturn DriverNode::on_deactivate(const rclcpp_lifecycle::State & /*state*/) {
   pointclouddata_poll_thread_.reset();
   imudata_poll_thread_.reset();
   lddc_ptr_.reset();
-  return tim_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
+  return rii_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
 }
 
-tim_common_utils::LifecycleNode::CallbackReturn DriverNode::on_cleanup(const rclcpp_lifecycle::State & /*state*/) {
-  return tim_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
+rii_common_utils::LifecycleNode::CallbackReturn DriverNode::on_cleanup(const rclcpp_lifecycle::State & /*state*/) {
+  return rii_common_utils::LifecycleNode::CallbackReturn::SUCCESS;
 }
 }  // namespace livox_ros
 
