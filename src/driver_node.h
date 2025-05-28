@@ -71,6 +71,7 @@ class DriverNode final : public rclcpp::Node {
   std::shared_future<void> future_;
   std::promise<void> exit_signal_;
 };
+
 #endif
 
 } // namespace livox_ros
