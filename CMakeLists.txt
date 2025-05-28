@@ -1,3 +1,6 @@
+set(HUMBLE_ROS "humble")
+set(ROS_EDITION "ROS2")
+
 # judge which cmake codes to use 
 if(ROS_EDITION STREQUAL "ROS1")
 
@@ -312,15 +315,13 @@ else(ROS_EDITION STREQUAL "ROS2")
     ${APR_LIBRARIES}
   )
 
-  rclcpp_components_register_node(${PROJECT_NAME}
-    PLUGIN "livox_ros::DriverNode"
-    EXECUTABLE ${PROJECT_NAME}_node
+
+  add_executable (${PROJECT_NAME}_node
+    src/main.cpp
   )
-<<<<<<< Updated upstream
-=======
+  
   target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
->>>>>>> Stashed changes
 
   if(BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
@@ -353,7 +354,7 @@ else(ROS_EDITION STREQUAL "ROS2")
   )
   ament_export_include_directories(include/${PROJECT_NAME})
   ament_export_libraries(${PROJECT_NAME})
-  
+
   ament_auto_package(INSTALL_TO_SHARE
     config
     launch_ROS2

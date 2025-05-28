@@ -52,7 +52,7 @@ class DriverNode final : public ros::NodeHandle {
 };
 
 #elif defined BUILDING_ROS2
-class DriverNode final : public rclcpp::Node {
+class DriverNode final : public rii_common_utils::LifecycleNode {
  public:
   explicit DriverNode(const rclcpp::NodeOptions& options);
   DriverNode(const DriverNode &) = delete;
@@ -60,6 +60,12 @@ class DriverNode final : public rclcpp::Node {
   DriverNode &operator=(const DriverNode &) = delete;
 
   DriverNode& GetNode() noexcept;
+
+ protected:
+  rii_common_utils::LifecycleNode::CallbackReturn on_configure(const rclcpp_lifecycle::State & state) override;
+  rii_common_utils::LifecycleNode::CallbackReturn on_activate(const rclcpp_lifecycle::State & state) override;
+  rii_common_utils::LifecycleNode::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & state) override;
+  rii_common_utils::LifecycleNode::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & state) override;
 
  private:
   void PointCloudDataPollThread();
@@ -70,6 +76,14 @@ class DriverNode final : public rclcpp::Node {
   std::shared_ptr<std::thread> imudata_poll_thread_;
   std::shared_future<void> future_;
   std::promise<void> exit_signal_;
+
+  /** Init default system parameter */
+  int xfer_format_;
+  int multi_topic_ ;
+  int data_src_;
+  double publish_freq_; /* Hz */
+  int output_type_;
+  std::string frame_id_;
 };
 
 #endif
