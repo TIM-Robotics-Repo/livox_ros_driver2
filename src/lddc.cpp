@@ -578,14 +578,14 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::CreatePublisher(uint8_t msg_type,
     else if (kPclPxyziMsg == msg_type)  {
       DRIVER_INFO(*cur_node_,
           "%s publish use pcl PointXYZI format", topic_name.c_str());
-      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data);
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(10);
       return cur_node_->create_publisher<PointCloud>(topic_name, qos);
     }
 #endif
     else if (kLivoxImuMsg == msg_type)  {
       DRIVER_INFO(*cur_node_,
           "%s publish use imu format", topic_name.c_str());
-      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data);
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(200);
       return cur_node_->create_publisher<ImuMsg>(topic_name,
           qos);
     } else {
