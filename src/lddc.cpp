@@ -223,10 +223,10 @@ void Lddc::PublishCustomPointcloud(LidarDataQueue *queue, uint8_t index) {
       continue;
     }
 
-    CustomMsg livox_msg;
-    InitCustomMsg(livox_msg, pkg, index);
-    FillPointsToCustomMsg(livox_msg, pkg);
-    PublishCustomPointData(livox_msg, index);
+    auto livox_msg = std::make_unique<CustomMsg>();
+    InitCustomMsg(*livox_msg, pkg, index);
+    FillPointsToCustomMsg(*livox_msg, pkg);
+    PublishCustomPointData(std::move(livox_msg), index);
   }
 }
 
@@ -357,7 +357,7 @@ void Lddc::PublishPointcloud2Data(const uint8_t index, const uint64_t timestamp,
   } else {
 #ifdef BUILDING_ROS1
     if (bag_ && enable_lidar_bag_) {
-      bag_->write(publisher_ptr->getTopic(), ros::Time(timestamp / 1000000000.0), cloud);
+      bag_->write(publisher_ptr->getTopic(), ros::Time(timestamp / 1000000000.0), *cloud);
     }
 #endif
   }
@@ -422,7 +422,7 @@ void Lddc::FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg)
   }
 }
 
-void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index) {
+void Lddc::PublishCustomPointData(std::unique_ptr<CustomMsg> livox_msg, const uint8_t index) {
 #ifdef BUILDING_ROS1
   PublisherPtr publisher_ptr = Lddc::GetCurrentPublisher(index);
 #elif defined BUILDING_ROS2
@@ -430,11 +430,11 @@ void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t inde
 #endif
 
   if (kOutputToRos == output_type_) {
-    publisher_ptr->publish(livox_msg);
+    publisher_ptr->publish(std::move(livox_msg));
   } else {
 #ifdef BUILDING_ROS1
     if (bag_ && enable_lidar_bag_) {
-      bag_->write(publisher_ptr->getTopic(), ros::Time(livox_msg.timebase / 1000000000.0), livox_msg);
+      bag_->write(publisher_ptr->getTopic(), ros::Time(livox_msg->timebase / 1000000000.0), *livox_msg);
     }
 #endif
   }
