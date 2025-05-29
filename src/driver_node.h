@@ -85,6 +85,7 @@ class DriverNode final : public rii_common_utils::LifecycleNode {
   int output_type_;
   std::string frame_id_;
 };
+
 #endif
 
 } // namespace livox_ros

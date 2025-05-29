@@ -319,12 +319,9 @@ else(ROS_EDITION STREQUAL "ROS2")
   add_executable (${PROJECT_NAME}_node
     src/main.cpp
   )
+  
   target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
 
-  # rclcpp_components_register_node(${PROJECT_NAME}
-  #   PLUGIN "livox_ros::DriverNode"
-  #   EXECUTABLE ${PROJECT_NAME}_node
-  # )
 
   if(BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
@@ -341,6 +338,22 @@ else(ROS_EDITION STREQUAL "ROS2")
     ${PROJECT_NAME}_node
     RUNTIME DESTINATION lib/${PROJECT_NAME}
   )
+
+  rclcpp_components_register_nodes(${PROJECT_NAME} "livox_ros::DriverNode")
+
+  install(
+    TARGETS ${PROJECT_NAME}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+  )
+
+  install(DIRECTORY src/
+    DESTINATION include/${PROJECT_NAME}
+    FILES_MATCHING PATTERN "*.h"
+  )
+  ament_export_include_directories(include/${PROJECT_NAME})
+  ament_export_libraries(${PROJECT_NAME})
 
   ament_auto_package(INSTALL_TO_SHARE
     config

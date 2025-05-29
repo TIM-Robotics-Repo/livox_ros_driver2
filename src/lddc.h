@@ -108,11 +108,11 @@ class Lddc final {
 
   void InitPointcloud2MsgHeader(const uint8_t& index, PointCloud2& cloud);
   void InitPointcloud2Msg(const uint8_t& index, const StoragePacket& pkg, PointCloud2& cloud, uint64_t& timestamp);
-  void PublishPointcloud2Data(const uint8_t index, uint64_t timestamp, const PointCloud2& cloud);
+  void PublishPointcloud2Data(const uint8_t index, uint64_t timestamp, std::unique_ptr<PointCloud2> cloud);
 
   void InitCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg, uint8_t index);
   void FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg);
-  void PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index);
+  void PublishCustomPointData(std::unique_ptr<CustomMsg> livox_msg, const uint8_t index);
 
   void InitPclMsg(const StoragePacket& pkg, PointCloud& cloud, uint64_t& timestamp);
   void FillPointsToPclMsg(const StoragePacket& pkg, PointCloud& pcl_msg);

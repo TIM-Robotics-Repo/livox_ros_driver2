@@ -207,10 +207,10 @@ void Lddc::PublishPointcloud2(LidarDataQueue *queue, uint8_t index) {
       continue;
     }
 
-    PointCloud2 cloud;
+    auto cloud = std::make_unique<PointCloud2>();
     uint64_t timestamp = 0;
-    InitPointcloud2Msg(index, pkg, cloud, timestamp);
-    PublishPointcloud2Data(index, timestamp, cloud);
+    InitPointcloud2Msg(index, pkg, *cloud, timestamp);
+    PublishPointcloud2Data(index, timestamp, std::move(cloud));
   }
 }
 
@@ -223,10 +223,10 @@ void Lddc::PublishCustomPointcloud(LidarDataQueue *queue, uint8_t index) {
       continue;
     }
 
-    CustomMsg livox_msg;
-    InitCustomMsg(livox_msg, pkg, index);
-    FillPointsToCustomMsg(livox_msg, pkg);
-    PublishCustomPointData(livox_msg, index);
+    auto livox_msg = std::make_unique<CustomMsg>();
+    InitCustomMsg(*livox_msg, pkg, index);
+    FillPointsToCustomMsg(*livox_msg, pkg);
+    PublishCustomPointData(std::move(livox_msg), index);
   }
 }
 
@@ -344,7 +344,7 @@ void Lddc::InitPointcloud2Msg(const uint8_t& index, const StoragePacket& pkg, Po
   memcpy(cloud.data.data(), points.data(), pkg.points_num * sizeof(LivoxPointXyzrtlt));
 }
 
-void Lddc::PublishPointcloud2Data(const uint8_t index, const uint64_t timestamp, const PointCloud2& cloud) {
+void Lddc::PublishPointcloud2Data(const uint8_t index, const uint64_t timestamp, std::unique_ptr<PointCloud2> cloud) {
 #ifdef BUILDING_ROS1
   PublisherPtr publisher_ptr = Lddc::GetCurrentPublisher(index);
 #elif defined BUILDING_ROS2
@@ -353,11 +353,11 @@ void Lddc::PublishPointcloud2Data(const uint8_t index, const uint64_t timestamp,
 #endif
 
   if (kOutputToRos == output_type_) {
-    publisher_ptr->publish(cloud);
+    publisher_ptr->publish(std::move(cloud)); 
   } else {
 #ifdef BUILDING_ROS1
     if (bag_ && enable_lidar_bag_) {
-      bag_->write(publisher_ptr->getTopic(), ros::Time(timestamp / 1000000000.0), cloud);
+      bag_->write(publisher_ptr->getTopic(), ros::Time(timestamp / 1000000000.0), *cloud);
     }
 #endif
   }
@@ -422,7 +422,7 @@ void Lddc::FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg)
   }
 }
 
-void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index) {
+void Lddc::PublishCustomPointData(std::unique_ptr<CustomMsg> livox_msg, const uint8_t index) {
 #ifdef BUILDING_ROS1
   PublisherPtr publisher_ptr = Lddc::GetCurrentPublisher(index);
 #elif defined BUILDING_ROS2
@@ -430,11 +430,11 @@ void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t inde
 #endif
 
   if (kOutputToRos == output_type_) {
-    publisher_ptr->publish(livox_msg);
+    publisher_ptr->publish(std::move(livox_msg));
   } else {
 #ifdef BUILDING_ROS1
     if (bag_ && enable_lidar_bag_) {
-      bag_->write(publisher_ptr->getTopic(), ros::Time(livox_msg.timebase / 1000000000.0), livox_msg);
+      bag_->write(publisher_ptr->getTopic(), ros::Time(livox_msg->timebase / 1000000000.0), *livox_msg);
     }
 #endif
   }
@@ -566,24 +566,28 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::CreatePublisher(uint8_t msg_type,
     if (kPointCloud2Msg == msg_type) {
       DRIVER_INFO(*cur_node_,
           "%s publish use PointCloud2 format", topic_name.c_str());
-      return cur_node_->create_publisher<PointCloud2>(topic_name, queue_size);
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(10);
+      return cur_node_->create_publisher<PointCloud2>(topic_name, qos);
     } else if (kLivoxCustomMsg == msg_type) {
       DRIVER_INFO(*cur_node_,
           "%s publish use livox custom format", topic_name.c_str());
-      return cur_node_->create_publisher<CustomMsg>(topic_name, queue_size);
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(10);
+      return cur_node_->create_publisher<CustomMsg>(topic_name, qos);
     }
 #if 0
     else if (kPclPxyziMsg == msg_type)  {
       DRIVER_INFO(*cur_node_,
           "%s publish use pcl PointXYZI format", topic_name.c_str());
-      return cur_node_->create_publisher<PointCloud>(topic_name, queue_size);
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(10);
+      return cur_node_->create_publisher<PointCloud>(topic_name, qos);
     }
 #endif
     else if (kLivoxImuMsg == msg_type)  {
       DRIVER_INFO(*cur_node_,
           "%s publish use imu format", topic_name.c_str());
+      auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data), rmw_qos_profile_sensor_data).keep_last(200);
       return cur_node_->create_publisher<ImuMsg>(topic_name,
-          queue_size);
+          qos);
     } else {
       PublisherPtr null_publisher(nullptr);
       return null_publisher;
